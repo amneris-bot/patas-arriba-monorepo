@@ -1,6 +1,7 @@
 # Patas Arriba Monorepo
 
-[![Harness](https://img.shields.io/badge/Harness-2%2F7_enforced-808080?style=flat-square)](HARNESS.md)
+[![Harness](https://img.shields.io/badge/Harness-6%2F7_enforced-4682B4?style=flat-square)](HARNESS.md)
+[![Harness Health](https://img.shields.io/badge/Harness_Health-Healthy-2E8B57?style=flat-square)](observability/snapshots/)
 [![Agent Harness Enabled](https://img.shields.io/badge/Agent_Harness-Enabled-000000?style=flat-square)](HARNESS.md)
 
 Monorepo for **Fundación Patas Arriba** — a platform to manage and coordinate volunteer participation in the foundation's events.

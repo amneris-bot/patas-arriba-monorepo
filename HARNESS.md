@@ -10,7 +10,7 @@
 
      Inspired by Birgitta Boeckeler's "Harness Engineering":
      https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html -->
-<!-- template-version: 0.39.0 -->
+<!-- template-version: 0.47.0 -->
 
 ## Context
 
@@ -47,8 +47,10 @@
 ### Consistent formatting (client)
 
 - **Rule**: Client source files must pass ESLint without errors
-- **Enforcement**: unverified
-- **Tool**: cd client && npm run lint
+- **Enforcement**: agent
+- **Tool**: harness-enforcer (runs `cd client && npm run lint` against the PR's
+  changed client files; this monorepo root has no CI by design, so the agent
+  gates at PR-review time rather than a workflow)
 - **Scope**: pr
 
 ### No secrets in source
@@ -103,8 +105,10 @@
 - **Rule**: The relevant test suite must pass with zero failures before
   any code is merged. Top-level changes run Playwright E2E; client changes
   run client tests; server changes run server tests.
-- **Enforcement**: unverified
-- **Tool**: depends on change scope (Playwright | client npm test | server npm test)
+- **Enforcement**: agent
+- **Tool**: harness-enforcer (selects the suite by change scope — Playwright
+  E2E at root | `cd client && npm test` | `cd server && npm test` — and gates
+  at PR-review time; no top-level CI by design)
 - **Scope**: pr
 
 ### Issues only in monorepo
@@ -236,8 +240,12 @@ Use /governance-constrain for guided authoring of governance constraints.
 
 ### Convention file sync
 
-- **What it checks**: Whether .cursor/rules/, .github/copilot-instructions.md,
-  and .windsurf/rules/ exist and reflect the current HARNESS.md conventions
+- **What it checks**: Whether the project's agent-facing convention files —
+  the CLAUDE.md hierarchy (root, `.claude/`, `client/`, `server/`) and
+  `AGENTS.md` — still reflect the current HARNESS.md Context and Constraints
+  sections. This project drives a single AI toolchain (Claude Code) and does
+  NOT maintain parallel Cursor/Copilot/Windsurf convention files, so those
+  surfaces are deliberately out of scope (do not flag them as missing).
 - **Frequency**: weekly
 - **Enforcement**: agent
 - **Tool**: harness-gc agent
@@ -469,7 +477,7 @@ honour the values declared here when reading.
 
 <!-- Auto-updated by /harness-audit — do not edit manually -->
 
-Last audit: never
-Constraints enforced: 2/7
-Garbage collection active: 0/16
-Drift detected: not yet audited
+Last audit: 2026-06-14
+Constraints enforced: 6/7
+Garbage collection active: 16/16 declared (0 runs to date)
+Drift detected: no
