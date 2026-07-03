@@ -4,6 +4,25 @@ Notable changes to the patas-arriba-monorepo workspace (harness, tooling,
 and orchestration glue). Submodule code changes are recorded in their own
 upstream repositories.
 
+## 2026-07-03
+
+### CodeGraph code intelligence across the monorepo
+
+- **Wired CodeGraph into the workspace** — registered the `codegraph` MCP
+  server (`.mcp.json`), allowlisted its read-only tools (`.claude/settings.json`),
+  added the CodeGraph usage guidance (`.claude/CLAUDE.md`), and gitignored the
+  local index files so the `.codegraph/` database never gets committed
+  (`.codegraph/.gitignore`). A single query now spans both the `client/` and
+  `server/` submodules.
+- **Excluded `.claude-user/` from the index** via a root `codegraph.json`
+  `exclude` pattern. The plugin marketplace under
+  `.claude-user/plugins/marketplaces/` is an embedded git repo, which CodeGraph
+  ≤1.0.1 indexed despite the `.gitignore` rule (upstream #514). Upgrading to
+  1.2.0 makes gitignored embedded repos respect `.gitignore` by default, and the
+  explicit `exclude` guarantees they stay out even for the one tracked file.
+  Reindex dropped from indexing plugin/tooling code to 126 files of real app
+  code (0 `.claude-user` nodes remain).
+
 ## 2026-06-14
 
 ### Harness audit follow-ups
