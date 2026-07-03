@@ -6,7 +6,7 @@
 # loaded correctly. Behaviour depends on the surface running Claude Code:
 #
 #   TUI (real terminal, e.g. `make devcontainer-claude` or a direct `claude` invocation):
-#     Run the deterministic background drift check (scripts/verify-plugins.sh)
+#     Run the deterministic background drift check (devex/scripts/verify-plugins.sh)
 #     and emit findings + the /verify-setup tip via {"systemMessage": "..."},
 #     which Claude Code renders as a banner. The user reads it directly off
 #     the terminal. The model is intentionally not in the loop.
@@ -103,9 +103,9 @@ else
 fi
 
 if [[ $exit_code -eq 124 ]]; then
-  message="Plugin drift check skipped: scripts/verify-plugins.sh timed out (claude CLI likely locked during session startup)."
+  message="Plugin drift check skipped: devex/scripts/verify-plugins.sh timed out (claude CLI likely locked during session startup)."
 elif [[ $exit_code -ne 0 ]]; then
-  message="${output}"$'\n\n'"Plugin drift detected (exit ${exit_code}). Run scripts/install-plugins.sh from a fresh terminal to fix, then restart Claude Code."
+  message="${output}"$'\n\n'"Plugin drift detected (exit ${exit_code}). Run devex/scripts/install-plugins.sh from a fresh terminal to fix, then restart Claude Code."
 fi
 
 exit 0

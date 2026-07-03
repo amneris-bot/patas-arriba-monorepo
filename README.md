@@ -148,8 +148,8 @@ This project uses several tools to support AI-assisted development with Claude C
 Plugin requirements are declared in [`required-plugins.yaml`](required-plugins.yaml) at the project root — edit that file to add or remove plugins. To verify and repair the environment:
 
 ```bash
-scripts/verify-plugins.sh    # check for drift
-scripts/install-plugins.sh   # fix drift (run from a fresh terminal)
+devex/scripts/verify-plugins.sh    # check for drift
+devex/scripts/install-plugins.sh   # fix drift (run from a fresh terminal)
 ```
 
 See [`docs/PLUGINS-AND-SKILLS.md`](docs/PLUGINS-AND-SKILLS.md) for the full plugin reference, available skills and agents, and instructions for adding new plugins.

@@ -55,7 +55,7 @@ command -v jq >/dev/null 2>&1 || { echo "install-plugins.sh: missing dependency:
 command -v claude >/dev/null 2>&1 || { echo "install-plugins.sh: missing dependency: claude" >&2; exit 2; }
 
 # Resolve known_marketplaces.json path (same logic as verify-plugins.sh).
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"  # devex/scripts/ -> repo root
 if [ -n "${CLAUDE_CONFIG_DIR:-}" ]; then
   if [[ "$CLAUDE_CONFIG_DIR" = /* ]]; then
     KNOWN_MARKETS_FILE="$CLAUDE_CONFIG_DIR/plugins/known_marketplaces.json"

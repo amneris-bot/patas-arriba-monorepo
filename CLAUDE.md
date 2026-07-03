@@ -9,6 +9,26 @@ This monorepo contains two projects imported as Git submodules (changes must be 
 - **`client/`** — [patas-arriba-client](https://github.com/jorgeberrizbeitia/patas-arriba-client) (`git@github.com:jorgeberrizbeitia/patas-arriba-client.git`): React PWA (Vite + HMR), ESLint, push notifications via VAPID
 - **`server/`** — [patas-arriba-server](https://github.com/jorgeberrizbeitia/patas-arriba-server) (`git@github.com:jorgeberrizbeitia/patas-arriba-server.git`): Node.js/Express API, Web Push, Docker, deployed via Fly.io
 
+## Developer Experience (`devex/`)
+
+Project-owned tooling that supports *working on* the monorepo lives under
+[`devex/`](devex/), organised by kind (borrowed from `avatia/monorepo`). This is
+the home for things **we** build — as distinct from product code (in the
+submodules) or third-party plugins (in the Claude Code plugin cache). See
+[`devex/README.md`](devex/README.md).
+
+- **`devex/skills/`** — **skills we develop ourselves are authored here**, not
+  directly in `.claude/skills/`. Each is surfaced to Claude Code with a per-skill
+  relative symlink `.claude/skills/<name> → ../../devex/skills/<name>`;
+  third-party skills stay as real dirs (or `.agents/skills/` symlinks) in
+  `.claude/skills/`. **Never** symlink `.claude/skills/<name>` into the `client/`
+  or `server/` submodules — the link dangles on submodule-less clones/CI and
+  breaks tools that walk `.claude/`; keep a tracked copy instead. Full convention:
+  [`devex/skills/README.md`](devex/skills/README.md).
+- **`devex/scripts/`** — project scripts (dev/demo/seed helpers, harness
+  tool-path wrappers, plugin verify/install). Superseded the old root `scripts/`
+  folder; never place project tooling inside the `client/`/`server/` submodules.
+
 ## Tech Stack
 
 - **Client:** React, Vite, PWA, VAPID push notifications
@@ -188,7 +208,7 @@ Reflections use the **per-fragment model**: each reflection is authored via
 `/reflect` as its own file under `reflections/active/<YYYY-MM-DD>-<slug>.md`, so
 two reflections written concurrently never collide.
 [`REFLECTION_LOG.md`](REFLECTION_LOG.md) is a **generated, committed aggregate** of
-those fragments (regenerate with `scripts/regenerate-reflection-log.sh` — never
+those fragments (regenerate with `devex/scripts/regenerate-reflection-log.sh` — never
 hand-edit it). Read recent entries before starting work to avoid repeating past
 mistakes. Promoted fragments are archived by the weekly GC rule into
 `reflections/archive/<YYYY>.md`.

@@ -6,7 +6,7 @@
      reflections/active/<YYYY-MM-DD>-<slug>.md (one file per reflection, so
      concurrent reflections never collide). This file is a deterministic,
      committed union view of those fragments — regenerate it with
-     `bash scripts/regenerate-reflection-log.sh` after adding or editing a
+     `bash devex/scripts/regenerate-reflection-log.sh` after adding or editing a
      fragment. Entries sort by fragment filename (date, then slug),
      so same-date entries are ordered alphabetically, not by append time.
 

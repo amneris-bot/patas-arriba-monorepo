@@ -43,7 +43,7 @@ for arg in "$@"; do
   esac
 done
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"  # devex/scripts/ -> repo root
 SETTINGS="$REPO_ROOT/.claude/settings.json"
 
 # Resolve installed_plugins.json. CLAUDE_CONFIG_DIR takes precedence over
@@ -376,7 +376,7 @@ if [ "$exit_code" -eq 0 ] && [ "$warn_count" -eq 0 ] && [ "$info_count" -eq 0 ];
 elif [ "$exit_code" -eq 0 ]; then
   printf 'No FAIL items. WARN/INFO are informational — reconcile by either declaring them in .claude/settings.json or removing them.\n'
 else
-  printf 'Run scripts/install-plugins.sh from a fresh terminal to fix FAIL items, then restart Claude Code.\n'
+  printf 'Run devex/scripts/install-plugins.sh from a fresh terminal to fix FAIL items, then restart Claude Code.\n'
 fi
 
 exit "$exit_code"

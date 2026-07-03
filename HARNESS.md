@@ -32,7 +32,7 @@
      follows it or not. -->
 
 - **Naming**: Lowercase hyphen-separated branch names (e.g. `add-search`, `fix-renderer-wrapping`). React components use PascalCase filenames in the client. Server route files are lowercase.
-- **File structure**: The monorepo only holds Playwright E2E and orchestration glue. All product code lives in `client/` or `server/` git submodules. Issues for everything live in `ascandroli/patas-arriba-monorepo`.
+- **File structure**: The monorepo only holds Playwright E2E and orchestration glue. All product code lives in `client/` or `server/` git submodules. Issues for everything live in `ascandroli/patas-arriba-monorepo`. Project-owned developer tooling lives under `devex/` (skills in `devex/skills/`, symlinked into `.claude/skills/`; scripts in `devex/scripts/`). See `devex/README.md`.
 - **Error handling**: Server returns structured error responses; the client surfaces them via the existing notification system. Do not introduce new error-handling patterns without first checking how `server/` already does it.
 - **Documentation**: CLAUDE.md is the agent-facing convention file. AGENTS.md is compound learning. REFLECTION_LOG.md is raw observations awaiting curation.
 
@@ -253,11 +253,11 @@ Use /governance-constrain for guided authoring of governance constraints.
 
 - **What it checks**: Whether project-owned shell scripts use `set -euo pipefail`
   (or carry a `# -e intentionally omitted` comment explaining why `-e` is absent).
-  Scoped to owned paths only — `scripts/` and `.claude/hooks/`. Never checks
+  Scoped to owned paths only — `devex/scripts/` and `.claude/hooks/`. Never checks
   `node_modules/`, `.claude-user/`, `.git/`, or any path not committed to this repo.
 - **Frequency**: weekly
 - **Enforcement**: deterministic
-- **Tool**: find scripts/ .claude/hooks/ -name "*.sh" | xargs grep -rL "set -euo pipefail\|intentionally omitted"
+- **Tool**: find devex/scripts/ .claude/hooks/ -name "*.sh" | xargs grep -rL "set -euo pipefail\|intentionally omitted"
 - **Auto-fix**: false
 
 ### Secret scanner operational
@@ -322,7 +322,7 @@ Use /governance-constrain for guided authoring of governance constraints.
   should be reviewed for removal
 - **Frequency**: monthly
 - **Enforcement**: deterministic
-- **Tool**: `scripts/check-redirect-sunsets.sh docs/plugins`
+- **Tool**: `devex/scripts/check-redirect-sunsets.sh docs/plugins`
 - **Auto-fix**: false (curator decides whether to extend or remove)
 
 ### Template currency
@@ -343,7 +343,7 @@ Use /governance-constrain for guided authoring of governance constraints.
   AGENTS.md or HARNESS.md content, or matches a closure form).
 - **Frequency**: weekly
 - **Enforcement**: deterministic
-- **Tool**: `scripts/archive-promoted-reflections.sh`
+- **Tool**: `devex/scripts/archive-promoted-reflections.sh`
 - **Auto-fix**: true (moves the fragment to `reflections/archive/<YYYY>.md`,
   deletes it, and regenerates the aggregate `REFLECTION_LOG.md`)
 

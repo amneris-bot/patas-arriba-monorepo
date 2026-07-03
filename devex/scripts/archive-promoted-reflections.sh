@@ -17,12 +17,12 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"  # devex/scripts/ -> repo root
 PLUGIN_BASE="${CLAUDE_CONFIG_DIR:-$REPO_ROOT/.claude-user}/plugins/cache/ai-literacy-superpowers/ai-literacy-superpowers"
 
 if [ ! -d "$PLUGIN_BASE" ]; then
   echo "ai-literacy-superpowers plugin cache not found at $PLUGIN_BASE" >&2
-  echo "Install the plugin (see scripts/install-plugins.sh) before running this rule." >&2
+  echo "Install the plugin (see devex/scripts/install-plugins.sh) before running this rule." >&2
   exit 1
 fi
 

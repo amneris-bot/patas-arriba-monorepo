@@ -80,8 +80,8 @@ Overcut requires the connected GitHub account to **own** the repository — bein
 Plugin requirements are declared in [`required-plugins.yaml`](../required-plugins.yaml) at the repo root. To verify and repair the environment:
 
 ```bash
-scripts/verify-plugins.sh    # check for drift
-scripts/install-plugins.sh   # fix drift (run from a fresh terminal)
+devex/scripts/verify-plugins.sh    # check for drift
+devex/scripts/install-plugins.sh   # fix drift (run from a fresh terminal)
 ```
 
 See [`docs/PLUGINS-AND-SKILLS.md`](PLUGINS-AND-SKILLS.md) for the full plugin catalog, available skills and agents, and instructions for adding new plugins.

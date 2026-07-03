@@ -6,6 +6,21 @@ upstream repositories.
 
 ## 2026-07-03
 
+### `devex/` tooling convention + scripts migration
+
+- **Adopted the `devex/` layout** (borrowed from `avatia/monorepo`) for
+  project-owned developer tooling: `devex/skills/` for skills we develop
+  ourselves (authored here, symlinked into `.claude/skills/`; never symlinked
+  into the `client/`/`server/` submodules) and `devex/scripts/` for scripts.
+  Added `devex/README.md` and `devex/skills/README.md`; documented the
+  convention in `CLAUDE.md` and `HARNESS.md`.
+- **Migrated the root `scripts/` folder into `devex/scripts/`** — moved all seven
+  scripts, fixed the `REPO_ROOT` depth (`$SCRIPT_DIR/../..`) in the four scripts
+  that resolve it, and repointed every reference (HARNESS.md GC-rule tool paths,
+  `.claude/hooks/session-start-verify-plugins.sh`, `.claude/commands/verify-setup.md`,
+  `.claude/settings.local.json`, docs, README, `required-plugins.yaml`). Historical
+  reflection entries keep their original paths.
+
 ### Harness template upgrade (v0.47.0 → v0.64.0)
 
 - **Adopted the Affordances feature** — added the `## Affordances` section
