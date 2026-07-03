@@ -5,7 +5,7 @@ version: "2026.05.27"
 
 Verify this project's Claude Code setup in three passes:
 
-1. Run the deterministic bash detector (`scripts/verify-plugins.sh`) for marketplaces and declared plugins. Print its output verbatim.
+1. Run the deterministic bash detector (`devex/scripts/verify-plugins.sh`) for marketplaces and declared plugins. Print its output verbatim.
 2. Perform a runtime check for marketplace plugins by inspecting the live session's available MCP tools and skills. The bash script cannot do this because `claude plugin list` reports install state, not whether the plugin is actually contributing capabilities to the current session.
 3. Perform a runtime check for local plugins under `plugins/` by inspecting the live session's available skills, commands, and agents.
 
@@ -13,7 +13,7 @@ Verify this project's Claude Code setup in three passes:
 
 ### Step 1: run the deterministic detector
 
-Run `scripts/verify-plugins.sh` via the Bash tool from the repo root. The script reads `required-plugins.yaml` as the source of truth, queries `claude plugin list --json` and `claude plugin marketplace list --json`, and emits a human-readable report. Exit code 0 means no FAIL; exit 1 means actionable drift; exit 2 means a missing dependency.
+Run `devex/scripts/verify-plugins.sh` via the Bash tool from the repo root. The script reads `required-plugins.yaml` as the source of truth, queries `claude plugin list --json` and `claude plugin marketplace list --json`, and emits a human-readable report. Exit code 0 means no FAIL; exit 1 means actionable drift; exit 2 means a missing dependency.
 
 Print the script's output verbatim. Do not rephrase it.
 
@@ -61,7 +61,7 @@ d. Classify each local plugin:
    - **LOADED** if at least one unambiguous match (after the discount above) is visible in the session. Prefer skill or command evidence over agent evidence, since `.claude/agents/` is the most common place for ad-hoc installs.
    - **NOT LOADED** if no unambiguous matches remain AND the directory looks like a real plugin (has `.claude-plugin/plugin.json`, `plugin.json`, `skills/`, `commands/`, or `agents/`).
    - **INVALID** if the directory exists but does not look like a real plugin.
-e. Print a section titled `Local plugins (runtime check):` with one line per plugin. Use the same status icons as `scripts/verify-plugins.sh` (✅ for OK, ⚠️ for WARN, ❌ for FAIL) so a reader can scan both sections at the same glance:
+e. Print a section titled `Local plugins (runtime check):` with one line per plugin. Use the same status icons as `devex/scripts/verify-plugins.sh` (✅ for OK, ⚠️ for WARN, ❌ for FAIL) so a reader can scan both sections at the same glance:
    - `✅  <name> — loaded (matched: skill 'X', agent 'Y', ...)`
    - `⚠️  <name> — present on disk but NOT loaded in this session. Relaunch via 'make devcontainer-claude' to pick it up.`
    - `❌  <name> — directory exists but has no plugin manifest or skills/commands/agents.`
@@ -73,14 +73,14 @@ Be honest about evidence. If you cannot find any of the plugin's declared assets
 Combine the bash exit code with both runtime checks:
 
 - Bash exit 0, all marketplace plugins LOADED, all local plugins LOADED, no WARN/INFO from the script: stay silent. The script already said "You are set."
-- Bash exit 0 but one or more **marketplace plugins NOT LOADED**: tell the user to run `scripts/install-plugins.sh` from a fresh terminal to reinstall from the current host, then restart Claude Code. The likely cause is stale `/workspace/...` paths in `installed_plugins.json` from a previous devcontainer session.
+- Bash exit 0 but one or more **marketplace plugins NOT LOADED**: tell the user to run `devex/scripts/install-plugins.sh` from a fresh terminal to reinstall from the current host, then restart Claude Code. The likely cause is stale `/workspace/...` paths in `installed_plugins.json` from a previous devcontainer session.
 - Bash exit 0 but one or more **local plugins NOT LOADED**: tell the user to relaunch Claude Code via `make devcontainer-claude` so the `--plugin-dir` flags take effect. Suggest they exit the current session first.
 - Bash exit 0 with WARN or INFO from the script: highlight anything worth knowing in one short sentence (e.g. a scope mismatch). Otherwise silent.
-- Bash exit 1: tell the user to run `scripts/install-plugins.sh` from a fresh terminal (outside this Claude Code session) to fix the FAIL items, then restart Claude Code so the new plugins load. Add `--dry-run` to preview first if they want.
+- Bash exit 1: tell the user to run `devex/scripts/install-plugins.sh` from a fresh terminal (outside this Claude Code session) to fix the FAIL items, then restart Claude Code so the new plugins load. Add `--dry-run` to preview first if they want.
 
 ### Step 5: do not auto-fix
 
-Do not run `scripts/install-plugins.sh` yourself. Plugin installs should run from a fresh terminal so they do not collide with the active session, and they require a restart anyway. The same applies to the local-plugin "not loaded" case: do not try to load plugins mid-session; advise a relaunch.
+Do not run `devex/scripts/install-plugins.sh` yourself. Plugin installs should run from a fresh terminal so they do not collide with the active session, and they require a restart anyway. The same applies to the local-plugin "not loaded" case: do not try to load plugins mid-session; advise a relaunch.
 
 ## Constraints
 

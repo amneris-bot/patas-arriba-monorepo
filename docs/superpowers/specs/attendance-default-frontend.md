@@ -1,3 +1,8 @@
+---
+diaboli: exempt-pre-existing
+cartographer: exempt-pre-existing
+---
+
 # Drop "pending attendees" warning Alert (frontend)
 
 ## User Story

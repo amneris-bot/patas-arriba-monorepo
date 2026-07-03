@@ -14,10 +14,29 @@ CLI proxy that compresses command output by ~89% before it reaches Claude Code's
 
 ## Codebase Intelligence
 
-### [GitNexus](https://github.com/abhigyanpatwari/GitNexus)
+The monorepo runs **two** code-intelligence graphs. CodeGraph is the **primary**
+tool, always on. GitNexus is **secondary/optional** — kept for its execution-flow
+processes and Cypher queries, but no longer a standing part of `CLAUDE.md`;
+invoke it on demand with the `/gitnexus` skill. Both index across the `client/`
+and `server/` submodules.
 
-Indexes the codebase into a knowledge graph exposing dependencies, call chains, and execution flows via MCP. Gives AI agents deep architectural awareness.
+### [CodeGraph](https://www.npmjs.com/package/@colbymchenry/codegraph) — primary
 
+SQLite knowledge graph of every symbol, edge, and file, exposed via MCP. One
+`codegraph_explore` call returns the verbatim source of the relevant symbols
+plus who calls them — Read-equivalent in far fewer tokens. A file watcher
+auto-syncs on change. Excludes `.claude-user/` via root `codegraph.json`.
+
+- **Install:** `npm install -g @colbymchenry/codegraph@latest` (keep ≥1.2.0 — see note below)
+- **Index repo:** `codegraph index` (`--force` to rebuild)
+- **Claude Code MCP:** already wired in `.mcp.json` as `codegraph serve --mcp` (or `codegraph install`)
+- **Note:** `.claude-user/plugins/marketplaces/` is an embedded git repo; CodeGraph ≤1.0.1 indexed it despite `.gitignore` (upstream #514). ≥1.2.0 plus the `codegraph.json` `exclude` keeps it out.
+
+### [GitNexus](https://github.com/abhigyanpatwari/GitNexus) — secondary/optional
+
+Indexes the codebase into a knowledge graph exposing dependencies, call chains, and execution flows via MCP. Retained for its process/flow view and Cypher queries, which CodeGraph does not provide.
+
+- **Invoke:** `use /gitnexus to <fix/debug/refactor> X` — the full graph-first workflow lives in the `/gitnexus` skill (`devex/skills/gitnexus/`), not in `CLAUDE.md`
 - **Install:** `npm install -g gitnexus`
 - **Index repo:** `npx gitnexus analyze`
 - **Claude Code MCP:** `claude mcp add gitnexus -- npx -y gitnexus@latest mcp`
@@ -64,8 +83,8 @@ Overcut requires the connected GitHub account to **own** the repository — bein
 Plugin requirements are declared in [`required-plugins.yaml`](../required-plugins.yaml) at the repo root. To verify and repair the environment:
 
 ```bash
-scripts/verify-plugins.sh    # check for drift
-scripts/install-plugins.sh   # fix drift (run from a fresh terminal)
+devex/scripts/verify-plugins.sh    # check for drift
+devex/scripts/install-plugins.sh   # fix drift (run from a fresh terminal)
 ```
 
 See [`docs/PLUGINS-AND-SKILLS.md`](PLUGINS-AND-SKILLS.md) for the full plugin catalog, available skills and agents, and instructions for adding new plugins.

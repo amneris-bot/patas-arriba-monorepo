@@ -8,12 +8,12 @@
 #
 # To add a plugin from claude-plugins-official:
 #   1. Add its id under plugins (format: name@marketplace)
-#   2. Run scripts/install-plugins.sh from a fresh terminal
+#   2. Run devex/scripts/install-plugins.sh from a fresh terminal
 #
 # To add a plugin from a new marketplace:
 #   1. Add the marketplace under marketplaces with its GitHub repo source
 #   2. Add the plugin id under plugins
-#   3. Run scripts/install-plugins.sh from a fresh terminal
+#   3. Run devex/scripts/install-plugins.sh from a fresh terminal
 
 marketplaces:
   ai-literacy-superpowers:

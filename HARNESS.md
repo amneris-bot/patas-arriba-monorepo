@@ -10,7 +10,7 @@
 
      Inspired by Birgitta Boeckeler's "Harness Engineering":
      https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html -->
-<!-- template-version: 0.39.0 -->
+<!-- template-version: 0.64.0 -->
 
 ## Context
 
@@ -32,7 +32,7 @@
      follows it or not. -->
 
 - **Naming**: Lowercase hyphen-separated branch names (e.g. `add-search`, `fix-renderer-wrapping`). React components use PascalCase filenames in the client. Server route files are lowercase.
-- **File structure**: The monorepo only holds Playwright E2E and orchestration glue. All product code lives in `client/` or `server/` git submodules. Issues for everything live in `ascandroli/patas-arriba-monorepo`.
+- **File structure**: The monorepo only holds Playwright E2E and orchestration glue. All product code lives in `client/` or `server/` git submodules. Issues for everything live in `ascandroli/patas-arriba-monorepo`. Project-owned developer tooling lives under `devex/` (skills in `devex/skills/`, symlinked into `.claude/skills/`; scripts in `devex/scripts/`). See `devex/README.md`.
 - **Error handling**: Server returns structured error responses; the client surfaces them via the existing notification system. Do not introduce new error-handling patterns without first checking how `server/` already does it.
 - **Documentation**: CLAUDE.md is the agent-facing convention file. AGENTS.md is compound learning. REFLECTION_LOG.md is raw observations awaiting curation.
 
@@ -47,8 +47,10 @@
 ### Consistent formatting (client)
 
 - **Rule**: Client source files must pass ESLint without errors
-- **Enforcement**: unverified
-- **Tool**: cd client && npm run lint
+- **Enforcement**: agent
+- **Tool**: harness-enforcer (runs `cd client && npm run lint` against the PR's
+  changed client files; this monorepo root has no CI by design, so the agent
+  gates at PR-review time rather than a workflow)
 - **Scope**: pr
 
 ### No secrets in source
@@ -103,8 +105,10 @@
 - **Rule**: The relevant test suite must pass with zero failures before
   any code is merged. Top-level changes run Playwright E2E; client changes
   run client tests; server changes run server tests.
-- **Enforcement**: unverified
-- **Tool**: depends on change scope (Playwright | client npm test | server npm test)
+- **Enforcement**: agent
+- **Tool**: harness-enforcer (selects the suite by change scope — Playwright
+  E2E at root | `cd client && npm test` | `cd server && npm test` — and gates
+  at PR-review time; no top-level CI by design)
 - **Scope**: pr
 
 ### Issues only in monorepo
@@ -124,6 +128,38 @@
 - **Enforcement**: deterministic
 - **Tool**: project `.claude/settings.json` deny rule on `Bash(git push)` and `Bash(git push:*)`
 - **Scope**: commit
+
+<!-- Uncomment if using the Affordances feature (the chained-constraint
+     pair from the harness-affordances design, steps 4-5). The check
+     self-gates to "unverified" (passes, no-op) until the project has at
+     least one real (non-example) affordance AND a readable project
+     permissions allowlist, so it is safe to leave active. Matching is
+     string equality on the permission pattern; hook-mode affordances are
+     skipped. The Tool path assumes the plugin is vendored at
+     `ai-literacy-superpowers/` (as in this repo) — adjust it to your
+     plugin install location otherwise.
+
+### Affordances have matching permissions
+
+- **Rule**: Every non-example, non-hook affordance declared in the
+  `## Affordances` section must have a `Permission` pattern that appears
+  verbatim (string equality) in the permissions allowlist
+  (`.claude/settings.json` or `.claude/settings.local.json`). An affordance
+  without a matching permission is a tool the agent has declared but cannot
+  invoke — a safety gap.
+- **Enforcement**: deterministic
+- **Tool**: bash ai-literacy-superpowers/scripts/harness-affordance-check.sh --direction=blocking
+- **Scope**: pr
+
+### Permissions have declared affordances
+
+- **Rule**: Every entry in the permissions allowlist should have a matching
+  affordance in the `## Affordances` section. An ungoverned permission is
+  paperwork debt, not a safety violation — flag it, do not block.
+- **Enforcement**: deterministic
+- **Tool**: bash ai-literacy-superpowers/scripts/harness-affordance-check.sh --direction=advisory
+- **Scope**: pr
+-->
 
 <!-- Uncomment if using spec-first development:
 
@@ -217,11 +253,11 @@ Use /governance-constrain for guided authoring of governance constraints.
 
 - **What it checks**: Whether project-owned shell scripts use `set -euo pipefail`
   (or carry a `# -e intentionally omitted` comment explaining why `-e` is absent).
-  Scoped to owned paths only — `scripts/` and `.claude/hooks/`. Never checks
+  Scoped to owned paths only — `devex/scripts/` and `.claude/hooks/`. Never checks
   `node_modules/`, `.claude-user/`, `.git/`, or any path not committed to this repo.
 - **Frequency**: weekly
 - **Enforcement**: deterministic
-- **Tool**: find scripts/ .claude/hooks/ -name "*.sh" | xargs grep -rL "set -euo pipefail\|intentionally omitted"
+- **Tool**: find devex/scripts/ .claude/hooks/ -name "*.sh" | xargs grep -rL "set -euo pipefail\|intentionally omitted"
 - **Auto-fix**: false
 
 ### Secret scanner operational
@@ -236,8 +272,12 @@ Use /governance-constrain for guided authoring of governance constraints.
 
 ### Convention file sync
 
-- **What it checks**: Whether .cursor/rules/, .github/copilot-instructions.md,
-  and .windsurf/rules/ exist and reflect the current HARNESS.md conventions
+- **What it checks**: Whether the project's agent-facing convention files —
+  the CLAUDE.md hierarchy (root, `.claude/`, `client/`, `server/`) and
+  `AGENTS.md` — still reflect the current HARNESS.md Context and Constraints
+  sections. This project drives a single AI toolchain (Claude Code) and does
+  NOT maintain parallel Cursor/Copilot/Windsurf convention files, so those
+  surfaces are deliberately out of scope (do not flag them as missing).
 - **Frequency**: weekly
 - **Enforcement**: agent
 - **Tool**: harness-gc agent
@@ -282,7 +322,7 @@ Use /governance-constrain for guided authoring of governance constraints.
   should be reviewed for removal
 - **Frequency**: monthly
 - **Enforcement**: deterministic
-- **Tool**: `scripts/check-redirect-sunsets.sh docs/plugins`
+- **Tool**: `devex/scripts/check-redirect-sunsets.sh docs/plugins`
 - **Auto-fix**: false (curator decides whether to extend or remove)
 
 ### Template currency
@@ -298,13 +338,14 @@ Use /governance-constrain for guided authoring of governance constraints.
 
 ### Reflection log archival of promoted entries
 
-- **What it checks**: Whether `REFLECTION_LOG.md` contains entries with a
-  `Promoted` line that pass pre-archive verification (RHS resolves to
+- **What it checks**: Whether any `reflections/active/` fragment carries a
+  `Promoted` line that passes pre-archive verification (RHS resolves to
   AGENTS.md or HARNESS.md content, or matches a closure form).
 - **Frequency**: weekly
 - **Enforcement**: deterministic
-- **Tool**: `ai-literacy-superpowers/scripts/archive-promoted-reflections.sh`
-- **Auto-fix**: true (moves entries to `reflections/archive/<YYYY>.md`)
+- **Tool**: `devex/scripts/archive-promoted-reflections.sh`
+- **Auto-fix**: true (moves the fragment to `reflections/archive/<YYYY>.md`,
+  deletes it, and regenerates the aggregate `REFLECTION_LOG.md`)
 
 ### Reflection log aged-out review
 
@@ -405,6 +446,130 @@ Run /governance-audit quarterly to keep governance constraints fresh.
 - **Auto-fix**: false
 -->
 
+<!-- Uncomment if using the Affordances feature (sequencing step 6). The
+     scanner is report-only and self-skips when there is no populated
+     ## Affordances section, so it is safe to leave active. Tune the
+     threshold via the `affordance-review-threshold-days` marker in the
+     ## Affordances section header (the scanner reads it; the --max-age-days
+     flag below overrides it).
+
+### Affordance review staleness
+
+- **What it checks**: Whether any affordance in the ## Affordances section has
+  a `Last reviewed` date older than the configured threshold (default 180
+  days / ~6 months), or no valid date at all
+- **Frequency**: weekly
+- **Enforcement**: deterministic
+- **Tool**: bash ai-literacy-superpowers/scripts/harness-affordance-staleness.sh
+- **Auto-fix**: false (the fix is a human running /harness-affordance review <name>)
+
+### Affordance recorder freshness (LOCAL — per-machine only)
+
+- **What it checks**: Whether the gitignored
+  observability/affordance-invocations.json exists and its newest invocation
+  is within the threshold (default 7 days) — a proxy for whether the
+  PostToolUse recorder hook is operating. The invocation file is gitignored
+  and per-machine, so this is LOCAL observability (runs via /harness-gc on
+  your machine), not a CI control.
+- **Frequency**: weekly
+- **Enforcement**: deterministic
+- **Tool**: bash ai-literacy-superpowers/scripts/harness-affordance-invocations.sh --check=freshness
+- **Auto-fix**: false
+
+### Affordance dead inventory (LOCAL — per-machine only)
+
+- **What it checks**: Each declared, non-example, non-hook affordance that has
+  had no observed invocation in the last 30 days (per your local recorder).
+  Bash matching is program-coarse and conservative. LOCAL only (gitignored
+  data).
+- **Frequency**: weekly
+- **Enforcement**: deterministic
+- **Tool**: bash ai-literacy-superpowers/scripts/harness-affordance-invocations.sh --check=dead-inventory
+- **Auto-fix**: false
+-->
+
+---
+
+## Affordances
+
+<!-- Each entry declares one tool the agent can invoke. Identity is
+     the load-bearing governance question — whose credentials authorise
+     the action. The Audit trail field's honest answer "none" is itself
+     useful governance signal.
+
+     Runtime invocation data (which agent invoked which tool, when, how
+     often) lives in observability/affordance-invocations.json and is
+     referenced — not inlined — here. HARNESS.md remains entirely
+     human-authored: the /harness-affordance add command only transcribes
+     governance fields the human dictates.
+
+     The discovery scanner (run via /harness-affordance discover) produces
+     a draft inventory from existing config. Promote entries with
+     /harness-affordance add <name> (or by hand), filling in the
+     governance-only fields (Identity, Audit trail, Last reviewed).
+
+     One affordance per permission pattern. Bash(gh *) is one affordance;
+     Bash(gh pr *) is a separate, narrower one. Field schema and value
+     definitions: docs/reference/affordance-schema.md.
+
+     Delete the example entries below once real entries are added. -->
+
+<!-- Runtime invocation data: observability/affordance-invocations.json -->
+
+<!-- affordance-review-threshold-days: 180 -->
+<!-- ^ Tune the review-staleness threshold here (the staleness GC rule reads
+     this value). This line is human-owned and survives /harness-upgrade. -->
+
+
+### gh-cli
+<!-- affordance-example -->
+
+- **Mode**: cli
+- **Identity**: runtime-resolved
+- **Audit trail**: github-audit (org audit log, 90-day retention,
+  admin-only access) — assumes credentials resolve to a real GitHub
+  identity; if `$GITHUB_TOKEN` resolves to a service account the audit
+  trail will record that account, not the user
+- **Permission**: `Bash(gh *)` (allowlist in `.claude/settings.local.json`)
+- **Last reviewed**: 2026-04-26
+- **Notes**: `gh` resolves credentials in this order: `$GITHUB_TOKEN` →
+  keychain (`gh auth login`) → fail. Confirm which path is active before
+  relying on this entry.
+
+### honeycomb-mcp
+<!-- affordance-example -->
+
+- **Mode**: central-mcp (api.honeycomb.io)
+- **Identity**: service-account (HONEYCOMB_API_KEY shared across team)
+- **Audit trail**: honeycomb-query-log (per-team, 30-day retention,
+  team-admin access)
+- **Permission**: `mcp__honeycomb__*` (allowlist in user
+  `~/.claude/settings.json`)
+- **Last reviewed**: 2026-04-26
+
+### shell-write-to-tmp
+<!-- affordance-example -->
+
+- **Mode**: cli
+- **Identity**: current-user (the human running the Claude Code session)
+- **Audit trail**: none
+- **Permission**: `Bash(echo *)` (allowlist)
+- **Last reviewed**: 2026-04-26
+- **Notes**: ephemeral session-local writes; if persistence is required,
+  promote to a tracked artefact
+
+### sync-to-global-cache-hook
+<!-- affordance-example -->
+
+- **Mode**: hook
+- **Trigger**: Stop
+- **Identity**: current-user
+- **Audit trail**: none (hook stderr, lost at session end)
+- **Permission**: `hooks.Stop` entry in `.claude/settings.local.json`
+  invoking `ai-literacy-superpowers/scripts/sync-to-global-cache.sh`
+- **Last reviewed**: 2026-04-26
+- **Notes**: invokes `rsync` under the current user after every session
+
 ---
 
 ## Observability
@@ -465,11 +630,47 @@ honour the values declared here when reading.
 
 ---
 
+<!-- ## Cognitive reservoir  (OPTIONAL — to opt in, remove this `<!--` line and the closing `-->` below)
+
+Advisory watch on the human verifier the harness cannot verify. Opt in
+by uncommenting this block so the `## Cognitive reservoir` heading
+becomes active — the reservoir-check Stop hook and the /reservoir agent
+only run when the heading is uncommented.
+
+NOT a Constraint. This is advisory-only: it never gates CI, never blocks
+a commit/merge/session, and never records a claim about your cognitive
+state to disk (you edit this block yourself). Do not promote it into a
+blocking gate — that would defeat its purpose and overclaim a precision
+the proxies cannot support.
+
+The proxies, the observed/inferred/asked confidence discipline, the
+default thresholds, and the contested-vs-robust scientific grounding
+(it does NOT assert ego depletion or the hungry-judges figure) all live
+in `skills/cognitive-reservoir/SKILL.md`.
+
+Thresholds are disjunctive — any one crossing fires a single session-end
+advisory. Tune to taste; a cluster of advisories you routinely ignore is
+a signal to raise a threshold, not to distrust the honesty rule.
+
+- window_hours: 8       # how far back the proxies look
+- span_minutes: 180     # continuous session span (min) before the span proxy fires
+- decision_volume: 8    # approval-like events (commits/merges) in the window
+- context_switches: 4   # distinct work streams touched in the window
+- chronotype:           # optional: early | late | intermediate. Only when
+                        #   declared is the late-hour circadian band labelled
+                        #   (optimal / dip / suboptimal); otherwise the hour is
+                        #   reported as asked/unverified.
+
+Run /reservoir for an on-demand read, or /reservoir tune to edit this block.
+-->
+
+---
+
 ## Status
 
 <!-- Auto-updated by /harness-audit — do not edit manually -->
 
-Last audit: never
-Constraints enforced: 2/7
-Garbage collection active: 0/16
-Drift detected: not yet audited
+Last audit: 2026-06-14
+Constraints enforced: 6/7
+Garbage collection active: 16/16 declared (0 runs to date)
+Drift detected: no

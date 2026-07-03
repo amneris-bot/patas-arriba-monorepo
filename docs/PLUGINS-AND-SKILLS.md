@@ -26,13 +26,13 @@ plugins:
 
 ```bash
 # Check for drift (exits 0 if clean, 1 if action needed)
-scripts/verify-plugins.sh
+devex/scripts/verify-plugins.sh
 
 # Fix all FAIL items (run from a fresh terminal, not inside Claude Code)
-scripts/install-plugins.sh
+devex/scripts/install-plugins.sh
 
 # Preview what install would do without executing
-scripts/install-plugins.sh --dry-run
+devex/scripts/install-plugins.sh --dry-run
 ```
 
 Run `/verify-setup` inside a Claude Code session for a deeper check that also inspects which plugins are actually contributing capabilities to the live session (MCP tools, skills, agents).
@@ -114,7 +114,7 @@ TypeScript Language Server Protocol integration. Provides real-time type checkin
    plugins:
      - new-plugin-name@claude-plugins-official
    ```
-2. Run `scripts/install-plugins.sh` from a fresh terminal.
+2. Run `devex/scripts/install-plugins.sh` from a fresh terminal.
 
 **From a new marketplace:**
 
@@ -129,7 +129,7 @@ TypeScript Language Server Protocol integration. Provides real-time type checkin
    plugins:
      - plugin-name@my-marketplace
    ```
-3. Run `scripts/install-plugins.sh` from a fresh terminal.
+3. Run `devex/scripts/install-plugins.sh` from a fresh terminal.
 
 The script will register the marketplace and install the plugin in one pass. `settings.json` is updated automatically by the Claude CLI during install.
 

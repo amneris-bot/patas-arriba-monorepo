@@ -1,3 +1,8 @@
+---
+diaboli: exempt-pre-existing
+cartographer: exempt-pre-existing
+---
+
 # Attendance defaults to "show" on sign-up (backend)
 
 ## User Story
