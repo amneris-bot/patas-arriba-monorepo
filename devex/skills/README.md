@@ -50,7 +50,7 @@ drift stays detectable. (See avatia/monorepo `new-package` for the precedent.)
 
 | Skill | Invocation | Status | Issue |
 |-------|-----------|--------|-------|
-| _add rows as skills land here_ | | | |
+| `gitnexus` | `use /gitnexus to <fix/debug/refactor> X` | Symlinked at `.claude/skills/gitnexus` | — |
 
 ## Graduated
 
