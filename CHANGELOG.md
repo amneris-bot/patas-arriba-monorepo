@@ -6,6 +6,20 @@ upstream repositories.
 
 ## 2026-07-03
 
+### GitNexus moved to an on-demand `/gitnexus` skill
+
+- **Removed the standing GitNexus block from `CLAUDE.md`.** GitNexus and CodeGraph
+  were two redundant code-intelligence tools both mandating "run impact analysis
+  before every edit"; the GitNexus block also pointed at a stale index. CodeGraph
+  is now the sole always-on tool.
+- **Captured GitNexus's full graph-first workflow as an invocable `/gitnexus`
+  skill** (`devex/skills/gitnexus/`, symlinked into `.claude/skills/`), so its
+  rigor — impact-before-edit, `detect_changes`-before-commit, guided rename,
+  execution-flow debugging — is available on demand (`use /gitnexus to …`) rather
+  than imposed on every task. The 6 GitNexus sub-skills moved with it.
+- **Updated `docs/TOOLS.md`** to frame CodeGraph as primary/always-on and GitNexus
+  as secondary/optional invoked via the skill.
+
 ### `devex/` tooling convention + scripts migration
 
 - **Adopted the `devex/` layout** (borrowed from `avatia/monorepo`) for

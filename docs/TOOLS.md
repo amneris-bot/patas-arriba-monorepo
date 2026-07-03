@@ -15,8 +15,10 @@ CLI proxy that compresses command output by ~89% before it reaches Claude Code's
 ## Codebase Intelligence
 
 The monorepo runs **two** code-intelligence graphs. CodeGraph is the **primary**
-tool; GitNexus is **secondary/optional**, kept for its execution-flow processes
-and Cypher queries. Both index across the `client/` and `server/` submodules.
+tool, always on. GitNexus is **secondary/optional** — kept for its execution-flow
+processes and Cypher queries, but no longer a standing part of `CLAUDE.md`;
+invoke it on demand with the `/gitnexus` skill. Both index across the `client/`
+and `server/` submodules.
 
 ### [CodeGraph](https://www.npmjs.com/package/@colbymchenry/codegraph) — primary
 
@@ -34,6 +36,7 @@ auto-syncs on change. Excludes `.claude-user/` via root `codegraph.json`.
 
 Indexes the codebase into a knowledge graph exposing dependencies, call chains, and execution flows via MCP. Retained for its process/flow view and Cypher queries, which CodeGraph does not provide.
 
+- **Invoke:** `use /gitnexus to <fix/debug/refactor> X` — the full graph-first workflow lives in the `/gitnexus` skill (`devex/skills/gitnexus/`), not in `CLAUDE.md`
 - **Install:** `npm install -g gitnexus`
 - **Index repo:** `npx gitnexus analyze`
 - **Claude Code MCP:** `claude mcp add gitnexus -- npx -y gitnexus@latest mcp`
