@@ -6,6 +6,31 @@ upstream repositories.
 
 ## 2026-07-03
 
+### Harness template upgrade (v0.47.0 → v0.64.0)
+
+- **Adopted the Affordances feature** — added the `## Affordances` section
+  (with the template's example entries) plus two commented affordance
+  constraints and three commented affordance GC rules to `HARNESS.md`, so the
+  tool-identity governance surface is available to populate. Gitignored the
+  per-machine `observability/affordance-invocations.json` recorder log.
+- **Adopted the Cognitive reservoir block** — added the commented, opt-in
+  advisory watch on verifier fatigue to `HARNESS.md`.
+- **Migrated reflections to the per-fragment model** — split the monolithic
+  `REFLECTION_LOG.md` into 12 per-entry fragments under `reflections/active/`,
+  scaffolded `reflections/archive/`, and made `REFLECTION_LOG.md` a generated
+  aggregate. Updated the reflection-archival GC rule and the `CLAUDE.md`
+  Learnings section to describe the fragment model. Content preserved; same-date
+  entries now sort deterministically by fragment filename.
+- **Fixed the vendored-tool-path problem for reflections** — added repo-local
+  wrapper scripts (`scripts/archive-promoted-reflections.sh`,
+  `scripts/regenerate-reflection-log.sh`) that resolve the ai-literacy-superpowers
+  plugin cache and its newest installed version at runtime and dispatch to the
+  upstream script, so the GC-rule Tool: path stays stable across plugin upgrades.
+  Pattern borrowed from `avatia/monorepo`. Repointed the reflection-archival GC
+  rule at the wrapper.
+- **Bumped the template-version marker** to `0.64.0` so the Template-currency
+  GC rule reflects the current plugin.
+
 ### CodeGraph code intelligence across the monorepo
 
 - **Wired CodeGraph into the workspace** — registered the `codegraph` MCP

@@ -1,12 +1,23 @@
 # Reflection Log
 
-<!-- Each entry is appended by integration-agent at the end of a pipeline run.
-     Entries capture what was surprising, what went wrong, and what should be
-     proposed for addition to AGENTS.md.
+<!-- GENERATED AGGREGATE — do not hand-edit the entries below.
 
-     Do NOT modify AGENTS.md directly from this log — only propose. Humans
-     curate AGENTS.md. The value of this log is that it provides the raw
-     material for curation, not that it auto-populates memory.
+     Reflections are authored as per-entry fragments under
+     reflections/active/<YYYY-MM-DD>-<slug>.md (one file per reflection, so
+     concurrent reflections never collide). This file is a deterministic,
+     committed union view of those fragments — regenerate it with
+     `bash scripts/regenerate-reflection-log.sh` after adding or editing a
+     fragment. Entries sort by fragment filename (date, then slug),
+     so same-date entries are ordered alphabetically, not by append time.
+
+     To add a reflection: run /reflect (writes a fragment), or drop a new
+     file in reflections/active/ and regenerate. To archive promoted entries:
+     the weekly Path 1 GC rule moves fragments carrying a verified Promoted
+     line into reflections/archive/<YYYY>.md.
+
+     Entries capture what was surprising, what went wrong, and what should be
+     proposed for addition to AGENTS.md. Do NOT modify AGENTS.md directly from
+     this log — only propose. Humans curate AGENTS.md.
 
      Entry format:
 
@@ -46,17 +57,17 @@
 ---
 
 - **Date**: 2026-05-03
-- **Agent**: Opus 4.7 (direct interaction, no orchestrator)
-- **Task**: Updated `fix/8-glossary-page` to absorb main's submodule-pointer advances as a clean merge, then drafted and created four chore issues (#20–#23) covering Entire restoration with private checkpoints, Overcut install, a custom Overcut workflow over the ai-literacy-superpowers SDLC pipeline, and a remote Claude Code devcontainer.
-- **Surprise**: Two things. (1) The "draft issues as temp markdown files in the project, let the user edit in the IDE, observe edits via system-reminders" loop converged much faster than CLI-only back-and-forth — issue #3 went through four substantive revisions in minutes, with the user fixing exactly the spots that mattered. (2) I leaked conversation-only framings ("slider", "spectrum") into the body of issue #3 twice in a row, even after one correction. A reader of the issue without the chat context had no anchor for those words.
-- **Proposal**: Add to AGENTS.md (STYLE): "For collaborative drafting of documents that will be read in isolation (issues, specs, design notes), write the draft to a temp markdown file in the repo and iterate via the IDE rather than presenting prose in chat. Tear the temp folder down once the document lands in its destination."
-- **Improvement**: Before presenting a draft document the user will read outside the chat, audit it for any framing introduced only in conversation. If a noun or metaphor only makes sense to someone who saw the discussion, restate it in the document or remove it.
-- **Signal**: workflow
+- **Agent**: Claude Sonnet 4.6 — direct interaction, no orchestrator
+- **Task**: Devcontainer readiness recon and upgrade: verified tests pass inside the container, upgraded base image from `node:20` to `node:24-trixie`, installed `rtk` and `gitnexus` globally, pre-baked the MongoDB 7.0.14 binary into the image layer (removing the named volume), and fixed a `.gitignore` rule that blocked `.claude-user/settings.json` from being tracked.
+- **Surprise**: Four. (1) `node:24-noble` does not exist as a Docker image tag — the Ubuntu 24.04-based Node image is not published under that name; the right tag for glibc 2.38+ is `node:24-trixie` (Debian 13). (2) `gitnexus` depends on `tree-sitter@0.21.1` which compiles as C++17 by default, but Node 24's V8 headers hard-require C++20 (`#error "C++20 or later required."`); the fix is `CXXFLAGS="-std=c++20"` in the Dockerfile `RUN` step. (3) Named volumes in `devcontainer.json` are always empty on first creation — they do not inherit content baked into the image at the same path. Baking the MongoDB binary into the image is only effective once the named volume mount for that path is removed. (4) The `.gitignore` entry `.claude-user` (directory-level ignore) silently prevented `!.claude-user/settings.json` from working — git never descends into an ignored directory to evaluate negation rules. The fix is to remove the directory-level line and keep only `.claude-user/*` plus the exception.
+- **Proposal**: none
+- **Improvement**: none
+- **Signal**: context
 - **Constraint**: none
 - **Session metadata**:
-  - Duration: ~75 min
-  - Model tiers used: Opus 4.7 throughout (Flagship-only — no delegation)
-  - Pipeline stages completed: none — direct interaction (no orchestrator pipeline)
+  - Duration: ~2h
+  - Model tiers used: Sonnet 4.6 throughout (single tier)
+  - Pipeline stages completed: none — direct interaction, no orchestrator pipeline
   - Agent delegation: manual
 
 ---
@@ -78,6 +89,38 @@
 ---
 
 - **Date**: 2026-05-03
+- **Agent**: Claude Opus 4.7 (1M context) — direct interaction, no orchestrator
+- **Task**: Manually verify issue #2 (attendance default flip) in the browser via claude-in-chrome MCP, then relocate two specs that had leaked into `client/specs/` and `server/specs/` submodule directories to a new `/specs/` folder at the monorepo root, and pin the convention in CLAUDE.md and `.claude/agents/spec-writer.md`.
+- **Surprise**: Two. (1) The visible diff for issue #2 lives on the organizer's attendance management screen (`/event/<id>/manage` → "Marcar asistencia"), not the participant view. I assumed participant-facing because the user-action being tested was a participant signing up, and produced a useless first GIF that captured a screen where nothing observable had changed. The user's pushback ("what is the expected behaviour here? what changed from before we did any work?") was the only thing that surfaced the misread; without it the wrong evidence would have shipped to the upstream PR. (2) Two specs sat in `server/specs/attendance-default.md` and `client/specs/attendance-default.md` — both inside submodules whose upstream maintainer has no interest in our spec-first process. The cause: `.claude/agents/spec-writer.md` line 50 said "do not create new files outside spec and plan locations" but never named the locations, so the spec-writer agent inferred "next to the code" and landed them in the submodules.
+- **Proposal**: Add to AGENTS.md (WORKFLOW): "Specs are project-management artefacts for the monorepo team. They live at `/specs/` at the monorepo root, never in `client/specs/` or `server/specs/`. When a change spans both halves, write `<topic>-frontend.md` and `<topic>-backend.md` as separate files." Add to AGENTS.md (WORKFLOW): "Before running browser-based UI verification, identify which user role and which screen actually renders the changed code path. Don't assume the user-action that triggers a code path is rendered on the same screen as the visible side effect — for issue #2 the trigger was the participant clicking 'join' but the visible regression was on the organizer's management view."
+- **Improvement**: For UI verification handoffs, the brief should include an explicit "where in the rendered UI does this change become visible?" line, derived from the diff, before any browser is opened. For agent location-anchoring rules, any "do not write outside X" instruction must enumerate X — vague rules create plausible misinterpretations.
+- **Signal**: failure
+- **Constraint**: agent rule pinned in `.claude/agents/spec-writer.md` and root `CLAUDE.md` this session (commit `090c88f`); no new tooling proposed — submodule pre-commit hooks are disabled per monorepo issue #20, and there's no top-level CI per project constraints.
+- **Session metadata**:
+  - Duration: ~2h
+  - Model tiers used: Opus 4.7 throughout (no delegation)
+  - Pipeline stages completed: none — direct interaction, no orchestrator pipeline
+  - Agent delegation: manual
+
+---
+
+- **Date**: 2026-05-03
+- **Agent**: Opus 4.7 (direct interaction, no orchestrator)
+- **Task**: Updated `fix/8-glossary-page` to absorb main's submodule-pointer advances as a clean merge, then drafted and created four chore issues (#20–#23) covering Entire restoration with private checkpoints, Overcut install, a custom Overcut workflow over the ai-literacy-superpowers SDLC pipeline, and a remote Claude Code devcontainer.
+- **Surprise**: Two things. (1) The "draft issues as temp markdown files in the project, let the user edit in the IDE, observe edits via system-reminders" loop converged much faster than CLI-only back-and-forth — issue #3 went through four substantive revisions in minutes, with the user fixing exactly the spots that mattered. (2) I leaked conversation-only framings ("slider", "spectrum") into the body of issue #3 twice in a row, even after one correction. A reader of the issue without the chat context had no anchor for those words.
+- **Proposal**: Add to AGENTS.md (STYLE): "For collaborative drafting of documents that will be read in isolation (issues, specs, design notes), write the draft to a temp markdown file in the repo and iterate via the IDE rather than presenting prose in chat. Tear the temp folder down once the document lands in its destination."
+- **Improvement**: Before presenting a draft document the user will read outside the chat, audit it for any framing introduced only in conversation. If a noun or metaphor only makes sense to someone who saw the discussion, restate it in the document or remove it.
+- **Signal**: workflow
+- **Constraint**: none
+- **Session metadata**:
+  - Duration: ~75 min
+  - Model tiers used: Opus 4.7 throughout (Flagship-only — no delegation)
+  - Pipeline stages completed: none — direct interaction (no orchestrator pipeline)
+  - Agent delegation: manual
+
+---
+
+- **Date**: 2026-05-03
 - **Agent**: Opus 4.7 (1M context) — direct interaction, no orchestrator
 - **Task**: Wire mongodb-memory-server into server tests so the Anthropic-reference devcontainer can run `make test` without a sidecar Mongo. Added a named volume for the Mongo binary cache, allowlisted fastdl/downloads.mongodb.org in the firewall, and pinned MONGOMS_VERSION + MONGOMS_DISTRO to work around missing aarch64-Debian builds.
 - **Surprise**: Three. (1) `npm install --save-dev mongodb-memory-server` run from the macOS host poisoned the bind-mounted `server/node_modules` with darwin-arm64 native bindings, so `make test` (which runs vitest inside the container) crashed with `Cannot find module './rolldown-binding.linux-arm64-gnu.node'`. The fix is `devcontainer exec ... npm install` — easy in retrospect, but I never paused to consider where the install would land given the bind mount. (2) MongoDB Community Edition does not publish aarch64 binaries for Debian — only Ubuntu / RHEL / Amazon Linux. memory-server's auto-detection on Apple Silicon + bookworm asked fastdl.mongodb.org for `mongodb-linux-aarch64-debian12-8.2.6.tgz` and got a 403; the workaround is `MONGOMS_DISTRO=ubuntu-22.04` even though the container is bookworm. (3) The first failed run also showed a confusing `UnableToUnlockLockfileError` that looked like a parallelism bug, but it was a downstream symptom of the 403 — workers fighting over a lockfile while the download itself was failing. Once the URL was correct, the race resolved itself.
@@ -93,33 +136,17 @@
 
 ---
 
-- **Date**: 2026-05-03
+- **Date**: 2026-05-27
 - **Agent**: Claude Sonnet 4.6 — direct interaction, no orchestrator
-- **Task**: Devcontainer readiness recon and upgrade: verified tests pass inside the container, upgraded base image from `node:20` to `node:24-trixie`, installed `rtk` and `gitnexus` globally, pre-baked the MongoDB 7.0.14 binary into the image layer (removing the named volume), and fixed a `.gitignore` rule that blocked `.claude-user/settings.json` from being tracked.
-- **Surprise**: Four. (1) `node:24-noble` does not exist as a Docker image tag — the Ubuntu 24.04-based Node image is not published under that name; the right tag for glibc 2.38+ is `node:24-trixie` (Debian 13). (2) `gitnexus` depends on `tree-sitter@0.21.1` which compiles as C++17 by default, but Node 24's V8 headers hard-require C++20 (`#error "C++20 or later required."`); the fix is `CXXFLAGS="-std=c++20"` in the Dockerfile `RUN` step. (3) Named volumes in `devcontainer.json` are always empty on first creation — they do not inherit content baked into the image at the same path. Baking the MongoDB binary into the image is only effective once the named volume mount for that path is removed. (4) The `.gitignore` entry `.claude-user` (directory-level ignore) silently prevented `!.claude-user/settings.json` from working — git never descends into an ignored directory to evaluate negation rules. The fix is to remove the directory-level line and keep only `.claude-user/*` plus the exception.
-- **Proposal**: none
-- **Improvement**: none
-- **Signal**: context
+- **Task**: Built the plugin verification and auto-repair system for the monorepo: `required-plugins.yaml` (canonical declaration), `verify-plugins.sh` (drift detector), `install-plugins.sh` (idempotent fixer with marketplace dedup), `session-start-verify-plugins.sh` (SessionStart hook), `/verify-setup` slash command, and `docs/PLUGINS-AND-SKILLS.md`. Caught and fixed two bugs discovered during live smoke testing, moved the hook to project scope in `.claude/settings.json`, cleaned stale references across scripts and docs, added CalVer, squashed history, and opened PR #27.
+- **Surprise**: Three. (1) `claude plugin marketplace remove <name>` silently strips **all** plugins from that marketplace out of `settings.json`'s `enabledPlugins` — not just the marketplace registration. Two sequential reinstalls from the same marketplace left only the last one in `settings.json`, causing a "2/2 declared plugins clean" result after the fixer ran. This was the root motivation for `required-plugins.yaml` as a stable anchor that survives CLI destructive operations. (2) `verify-plugins.sh` was iterating over `claude plugin list` output as its baseline. When `settings.json` got stripped, the script had no expected list to compare against and reported "0 FAILs" for the missing plugins — making it blind to the damage and causing `install-plugins.sh` to exit "nothing to do" on a second run. (3) `context7` showed FAIL (stale paths) in `verify-plugins.sh` but appeared LOADED in the `/verify-setup` runtime check — because an older install in `~/.claude/` was still being served to the session. Install state and session-loaded state can diverge silently; the two checks measure different things.
+- **Proposal**: Add to AGENTS.md (GOTCHAS): "`claude plugin marketplace remove <name>` is destructive — it strips all plugins from that marketplace out of `settings.json`'s `enabledPlugins`, not just the marketplace entry. Always repair via `scripts/install-plugins.sh`, never by running the remove command manually. `required-plugins.yaml` exists precisely as a stable anchor that survives this side-effect."
+- **Improvement**: A repair tool that issues destructive intermediate operations should snapshot the full desired state *before* the operation and restore it after, rather than trusting that only the targeted item needs attention. The YAML-as-anchor pattern we landed on solves this at the architecture level — the improvement for future similar tools is to design that anchor in first, before debugging makes it necessary.
+- **Signal**: failure
 - **Constraint**: none
 - **Session metadata**:
-  - Duration: ~2h
+  - Duration: ~3h
   - Model tiers used: Sonnet 4.6 throughout (single tier)
-  - Pipeline stages completed: none — direct interaction, no orchestrator pipeline
-  - Agent delegation: manual
-
----
-
-- **Date**: 2026-05-03
-- **Agent**: Claude Opus 4.7 (1M context) — direct interaction, no orchestrator
-- **Task**: Manually verify issue #2 (attendance default flip) in the browser via claude-in-chrome MCP, then relocate two specs that had leaked into `client/specs/` and `server/specs/` submodule directories to a new `/specs/` folder at the monorepo root, and pin the convention in CLAUDE.md and `.claude/agents/spec-writer.md`.
-- **Surprise**: Two. (1) The visible diff for issue #2 lives on the organizer's attendance management screen (`/event/<id>/manage` → "Marcar asistencia"), not the participant view. I assumed participant-facing because the user-action being tested was a participant signing up, and produced a useless first GIF that captured a screen where nothing observable had changed. The user's pushback ("what is the expected behaviour here? what changed from before we did any work?") was the only thing that surfaced the misread; without it the wrong evidence would have shipped to the upstream PR. (2) Two specs sat in `server/specs/attendance-default.md` and `client/specs/attendance-default.md` — both inside submodules whose upstream maintainer has no interest in our spec-first process. The cause: `.claude/agents/spec-writer.md` line 50 said "do not create new files outside spec and plan locations" but never named the locations, so the spec-writer agent inferred "next to the code" and landed them in the submodules.
-- **Proposal**: Add to AGENTS.md (WORKFLOW): "Specs are project-management artefacts for the monorepo team. They live at `/specs/` at the monorepo root, never in `client/specs/` or `server/specs/`. When a change spans both halves, write `<topic>-frontend.md` and `<topic>-backend.md` as separate files." Add to AGENTS.md (WORKFLOW): "Before running browser-based UI verification, identify which user role and which screen actually renders the changed code path. Don't assume the user-action that triggers a code path is rendered on the same screen as the visible side effect — for issue #2 the trigger was the participant clicking 'join' but the visible regression was on the organizer's management view."
-- **Improvement**: For UI verification handoffs, the brief should include an explicit "where in the rendered UI does this change become visible?" line, derived from the diff, before any browser is opened. For agent location-anchoring rules, any "do not write outside X" instruction must enumerate X — vague rules create plausible misinterpretations.
-- **Signal**: failure
-- **Constraint**: agent rule pinned in `.claude/agents/spec-writer.md` and root `CLAUDE.md` this session (commit `090c88f`); no new tooling proposed — submodule pre-commit hooks are disabled per monorepo issue #20, and there's no top-level CI per project constraints.
-- **Session metadata**:
-  - Duration: ~2h
-  - Model tiers used: Opus 4.7 throughout (no delegation)
   - Pipeline stages completed: none — direct interaction, no orchestrator pipeline
   - Agent delegation: manual
 
@@ -143,14 +170,14 @@
 
 - **Date**: 2026-05-27
 - **Agent**: Claude Sonnet 4.6 — direct interaction, no orchestrator
-- **Task**: Built the plugin verification and auto-repair system for the monorepo: `required-plugins.yaml` (canonical declaration), `verify-plugins.sh` (drift detector), `install-plugins.sh` (idempotent fixer with marketplace dedup), `session-start-verify-plugins.sh` (SessionStart hook), `/verify-setup` slash command, and `docs/PLUGINS-AND-SKILLS.md`. Caught and fixed two bugs discovered during live smoke testing, moved the hook to project scope in `.claude/settings.json`, cleaned stale references across scripts and docs, added CalVer, squashed history, and opened PR #27.
-- **Surprise**: Three. (1) `claude plugin marketplace remove <name>` silently strips **all** plugins from that marketplace out of `settings.json`'s `enabledPlugins` — not just the marketplace registration. Two sequential reinstalls from the same marketplace left only the last one in `settings.json`, causing a "2/2 declared plugins clean" result after the fixer ran. This was the root motivation for `required-plugins.yaml` as a stable anchor that survives CLI destructive operations. (2) `verify-plugins.sh` was iterating over `claude plugin list` output as its baseline. When `settings.json` got stripped, the script had no expected list to compare against and reported "0 FAILs" for the missing plugins — making it blind to the damage and causing `install-plugins.sh` to exit "nothing to do" on a second run. (3) `context7` showed FAIL (stale paths) in `verify-plugins.sh` but appeared LOADED in the `/verify-setup` runtime check — because an older install in `~/.claude/` was still being served to the session. Install state and session-loaded state can diverge silently; the two checks measure different things.
-- **Proposal**: Add to AGENTS.md (GOTCHAS): "`claude plugin marketplace remove <name>` is destructive — it strips all plugins from that marketplace out of `settings.json`'s `enabledPlugins`, not just the marketplace entry. Always repair via `scripts/install-plugins.sh`, never by running the remove command manually. `required-plugins.yaml` exists precisely as a stable anchor that survives this side-effect."
-- **Improvement**: A repair tool that issues destructive intermediate operations should snapshot the full desired state *before* the operation and restore it after, rather than trusting that only the targeted item needs attention. The YAML-as-anchor pattern we landed on solves this at the architecture level — the improvement for future similar tools is to design that anchor in first, before debugging makes it necessary.
-- **Signal**: failure
+- **Task**: Installed Overcut as an SDLC automation tool: documented it in `docs/TOOLS.md`, worked around its repo-ownership requirement using a dedicated bot account (`amneris-bot`) with a fork, enabled issues on the fork, created a test issue, triggered the `requirements-document-generation` playbook successfully, posted findings back to issue #21, and committed the documentation including the GitHub account setup notes.
+- **Surprise**: Two. (1) Overcut requires the connected GitHub account to *own* the repository — collaborator or developer access is not sufficient for Overcut to discover the repo. This is not prominently documented and forced the bot-account/fork workaround. (2) GitHub disables issues on forks by default; the fork's settings had to be updated manually before any Overcut playbook could target an issue there.
+- **Proposal**: Add to AGENTS.md (GOTCHAS): "Overcut requires the connected GitHub account to be the repository owner, not just a collaborator. The workaround in use is a dedicated bot account (`amneris-bot`) that owns a fork at `amneris-bot/patas-arriba-monorepo`. Issues on that fork must be enabled manually (GitHub disables them on forks by default). Overcut playbooks are triggered against issues on the fork; useful output is linked back to the corresponding issue in the main repo."
+- **Improvement**: The original issue (#21) listed ownership as a "constraint to confirm" rather than a known blocker — underestimating the friction. Future third-party tool evaluation tickets should explicitly ask "does this tool require ownership, not just collaboration?" as a pre-flight question, since the answer shapes the entire integration strategy.
+- **Signal**: context
 - **Constraint**: none
 - **Session metadata**:
-  - Duration: ~3h
+  - Duration: ~45 min
   - Model tiers used: Sonnet 4.6 throughout (single tier)
   - Pipeline stages completed: none — direct interaction, no orchestrator pipeline
   - Agent delegation: manual
@@ -167,22 +194,6 @@
 - **Constraint**: none
 - **Session metadata**:
   - Duration: ~30 min
-  - Model tiers used: Sonnet 4.6 throughout (single tier)
-  - Pipeline stages completed: none — direct interaction, no orchestrator pipeline
-  - Agent delegation: manual
-
----
-
-- **Date**: 2026-05-27
-- **Agent**: Claude Sonnet 4.6 — direct interaction, no orchestrator
-- **Task**: Installed Overcut as an SDLC automation tool: documented it in `docs/TOOLS.md`, worked around its repo-ownership requirement using a dedicated bot account (`amneris-bot`) with a fork, enabled issues on the fork, created a test issue, triggered the `requirements-document-generation` playbook successfully, posted findings back to issue #21, and committed the documentation including the GitHub account setup notes.
-- **Surprise**: Two. (1) Overcut requires the connected GitHub account to *own* the repository — collaborator or developer access is not sufficient for Overcut to discover the repo. This is not prominently documented and forced the bot-account/fork workaround. (2) GitHub disables issues on forks by default; the fork's settings had to be updated manually before any Overcut playbook could target an issue there.
-- **Proposal**: Add to AGENTS.md (GOTCHAS): "Overcut requires the connected GitHub account to be the repository owner, not just a collaborator. The workaround in use is a dedicated bot account (`amneris-bot`) that owns a fork at `amneris-bot/patas-arriba-monorepo`. Issues on that fork must be enabled manually (GitHub disables them on forks by default). Overcut playbooks are triggered against issues on the fork; useful output is linked back to the corresponding issue in the main repo."
-- **Improvement**: The original issue (#21) listed ownership as a "constraint to confirm" rather than a known blocker — underestimating the friction. Future third-party tool evaluation tickets should explicitly ask "does this tool require ownership, not just collaboration?" as a pre-flight question, since the answer shapes the entire integration strategy.
-- **Signal**: context
-- **Constraint**: none
-- **Session metadata**:
-  - Duration: ~45 min
   - Model tiers used: Sonnet 4.6 throughout (single tier)
   - Pipeline stages completed: none — direct interaction, no orchestrator pipeline
   - Agent delegation: manual

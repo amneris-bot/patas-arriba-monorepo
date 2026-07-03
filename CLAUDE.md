@@ -184,12 +184,19 @@ Wrap any of these with `rtk` for token-optimized output (e.g. `rtk npx playwrigh
 
 ## Learnings
 
-[`REFLECTION_LOG.md`](REFLECTION_LOG.md) accumulates session-level surprises, failures,
-and improvement proposals captured by the integration-agent at the end of each pipeline
-run. Read recent entries before starting work to avoid repeating past mistakes.
+Reflections use the **per-fragment model**: each reflection is authored via
+`/reflect` as its own file under `reflections/active/<YYYY-MM-DD>-<slug>.md`, so
+two reflections written concurrently never collide.
+[`REFLECTION_LOG.md`](REFLECTION_LOG.md) is a **generated, committed aggregate** of
+those fragments (regenerate with `scripts/regenerate-reflection-log.sh` — never
+hand-edit it). Read recent entries before starting work to avoid repeating past
+mistakes. Promoted fragments are archived by the weekly GC rule into
+`reflections/archive/<YYYY>.md`.
 
 [`AGENTS.md`](AGENTS.md) holds compound learning — patterns, gotchas, and architectural
-decisions that have been promoted from REFLECTION_LOG.md by human curation.
+decisions that have been promoted from a reflection fragment by human curation. When
+promoting, add a `- **Promoted**: YYYY-MM-DD → <target>` line to the source fragment
+in the same commit as the AGENTS.md/HARNESS.md edit, then regenerate the aggregate.
 
 <!-- rtk-instructions v2 -->
 # RTK (Rust Token Killer) - Token-Optimized Commands

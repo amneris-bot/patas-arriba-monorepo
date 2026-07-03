@@ -21,3 +21,6 @@ test-results/
 # ONLY memory is committed (shared context) — everything else is sensitive or ephemeral
 .claude-user/*
 !.claude-user/settings.json
+
+# Affordance invocation recorder — LOCAL, per-machine (see HARNESS.md ## Affordances)
+observability/affordance-invocations.json
